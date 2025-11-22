@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from bson import ObjectId
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
@@ -83,3 +84,9 @@ class Complaint(BaseModel):
     images: List[str] = Field(default_factory=list)
     createdAt: datetime = Field(..., default_factory=datetime.now)
     updatedAt: datetime = Field(..., default_factory=datetime.now)
+
+    @field_validator("id", mode="before")
+    def convert_objectid(cls, v):
+        if isinstance(v, ObjectId):
+            return str(v)
+        return v

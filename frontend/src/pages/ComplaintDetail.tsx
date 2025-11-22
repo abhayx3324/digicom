@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../api/axiosClient";
 
+const API_URL = api.defaults.baseURL;
+
 type Complaint = {
   id: string;
   title: string;
@@ -61,7 +63,7 @@ export default function ComplaintDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {complaint.images.map((img) => (
               <img
-                src={`/${img}`}
+                src={`${API_URL}/complaints/images/${img}`}
                 alt={complaint.title}
                 key={img}
                 className="rounded border border-gray-800"

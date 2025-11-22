@@ -86,7 +86,7 @@ async def save_complaint_images(
             await f.write(contents)
         
         relative_path = f"uploads/complaints/{unique_filename}"
-        image_paths.append(relative_path)
+        image_paths.append(unique_filename)
         
         await image.seek(0)
     

@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi.responses import FileResponse
+import os
 from typing import List, Dict, Any, Optional
 
 from commons.schemas.user import User, UserRole
@@ -67,6 +69,20 @@ async def get_complaint(
         )
     
     return complaint
+
+
+@router.get("/images/{filename}")
+async def get_complaint_image(
+        filename: str,
+        _user: User = Depends(get_current_user)
+) -> FileResponse:
+    image_path = f"uploads/complaints/{filename}"
+
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(image_path)
+
 
 @router.put("/{complaint_id}")
 async def update_complaint(
