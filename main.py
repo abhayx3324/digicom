@@ -4,6 +4,8 @@ import uvicorn
 
 from modules.auth.routes.auth import router as auth_router
 from modules.complaint.routes.complaints import router as complaint_router
+from modules.dashboard.routes.dashboard import router as dashboard_router
+
 
 
 app = FastAPI()
@@ -25,6 +27,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(complaint_router)
+app.include_router(dashboard_router)
 
 @app.get("/api/v1/")
 def root():
