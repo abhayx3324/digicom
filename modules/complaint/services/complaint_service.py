@@ -38,10 +38,12 @@ async def create_complaint_service(
     complaint_dict["createdAt"] = datetime.now(timezone.utc)
     complaint_dict["updatedAt"] = datetime.now(timezone.utc)
 
+    clean_copy = complaint_dict.copy()
+
     collection = db.get_collection(Collections.COMPLAINT)
     result = await collection.insert_one(complaint_dict)
     complaint_response = {
-        **complaint_dict,
+        **clean_copy,
         "id": str(result.inserted_id),
         "createdAt": complaint_dict["createdAt"].isoformat(),
         "updatedAt": complaint_dict["updatedAt"].isoformat(),

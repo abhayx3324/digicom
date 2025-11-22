@@ -73,8 +73,7 @@ async def get_complaint(
 
 @router.get("/images/{filename}")
 async def get_complaint_image(
-        filename: str,
-        _user: User = Depends(get_current_user)
+        filename: str
 ) -> FileResponse:
     image_path = f"uploads/complaints/{filename}"
 
