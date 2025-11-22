@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, File, UploadFile
+from fastapi import HTTPException, status as httpstatus, File, UploadFile
 from typing import Optional
 from bson import ObjectId
 from datetime import datetime, timezone
@@ -68,7 +68,7 @@ async def save_complaint_images(
         file_extension = Path(image.filename).suffix.lower()
         if file_extension not in settings.ALLOWED_EXTENSIONS:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=httpstatus.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid file type: {image.filename}. Allowed: {', '.join(settings.ALLOWED_EXTENSIONS)}"
             )
         
@@ -76,7 +76,7 @@ async def save_complaint_images(
         
         if len(contents) > settings.MAX_FILE_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=httpstatus.HTTP_400_BAD_REQUEST,
                 detail=f"File {image.filename} exceeds maximum size of 5MB"
             )
         
@@ -159,7 +159,7 @@ async def get_complaint_service(
 ) -> Tuple[Complaint, List]:
     if not ObjectId.is_valid(complaint_id):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=httpstatus.HTTP_400_BAD_REQUEST,
             detail="Invalid complaint ID format"
         )
     
