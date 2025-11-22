@@ -4,7 +4,7 @@ from bson import ObjectId
 from datetime import datetime, timezone
 import uuid
 import aiofiles
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 from pathlib import Path
 from email.message import EmailMessage
 from aiosmtplib import send
@@ -12,7 +12,7 @@ from aiosmtplib import send
 from config import settings
 from commons.utils.file import delete_file
 from commons.utils.db import db
-from commons.schemas.user import UserRole
+from commons.schemas.user import User, UserRole
 from commons.serializers.collections import Collections
 from modules.complaint.serializers.complaints import Complaint, ComplaintAction, ComplaintStatus, ComplaintSort, ACTION_TRANSITIONS
 
@@ -153,7 +153,10 @@ async def list_complaints_service(
     }
 
 
-async def get_complaint_service(complaint_id: str) -> Complaint:
+async def get_complaint_service(
+        _user: User,
+        complaint_id: str
+) -> Tuple[Complaint, List]:
     if not ObjectId.is_valid(complaint_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -162,10 +165,20 @@ async def get_complaint_service(complaint_id: str) -> Complaint:
     
     collection = db.get_collection(Collections.COMPLAINT)
     complaint = await collection.find_one({"_id": ObjectId(complaint_id)})
+    
+    current_status = ComplaintStatus(complaint.get("status", ""))
+
+    allowed_actions = get_allowed_actions(
+        current_status=current_status,
+        user_role=_user.role
+    )
+
+    #complaint["status_options"] = allowed_actions
+    
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
     
-    return Complaint(**complaint)
+    return Complaint(**complaint), allowed_actions
 
 
 def validate_action(
@@ -283,6 +296,24 @@ async def edit_complaint_service(
     collection = db.get_collection(Collections.COMPLAINT)
     updated = await collection.find_one({"_id": ObjectId(complaint_id)})
     return Complaint(**updated)
+
+
+def get_allowed_actions(current_status: ComplaintStatus, user_role: UserRole):
+    allowed = []
+
+    for action, rules in ACTION_TRANSITIONS.items():
+        for rule in rules:
+            if rule["from"] == current_status:
+
+                role_allowed = (
+                    rule["role"] == "ANY" or
+                    rule["role"] == user_role
+                )
+
+                if role_allowed:
+                    allowed.append(action)
+
+    return allowed
 
 
 async def send_status_email(email: str, complaint_title: str, complaint_id: str, old_status: str, new_status: str):

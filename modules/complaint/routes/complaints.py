@@ -58,9 +58,9 @@ async def list_complaints(
 async def get_complaint(
     complaint_id: str,
     _user: User = Depends(get_current_user)
-) -> Complaint:
+) -> Dict[str, Any]:
     
-    complaint = await get_complaint_service(complaint_id)
+    complaint, allowed_actions = await get_complaint_service(_user, complaint_id)
 
     if _user.role == UserRole.CITIZEN and complaint.user_id != _user.id:
         raise HTTPException(
@@ -68,7 +68,10 @@ async def get_complaint(
             detail="You don't have permission to view this complaint"
         )
     
-    return complaint
+    return {
+        **complaint.model_dump(),
+        "status_options": allowed_actions
+    }
 
 
 @router.get("/images/{filename}")
