@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, status as httpstatus, File, UploadFile, Form
 from fastapi.responses import FileResponse
 import os
 from typing import List, Dict, Any, Optional
@@ -21,7 +21,7 @@ async def create_complaint(
 ) -> Dict[str, Any]:
 
     if _user.role == UserRole.ADMIN:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins cannot create complaints")
+        raise HTTPException(status_code=httpstatus.HTTP_403_FORBIDDEN, detail="Admins cannot create complaints")
     
     if images:
         images = [image for image in images if image and not isinstance(image, str)]
@@ -64,7 +64,7 @@ async def get_complaint(
 
     if _user.role == UserRole.CITIZEN and complaint.user_id != _user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=httpstatus.HTTP_403_FORBIDDEN,
             detail="You don't have permission to view this complaint"
         )
     
