@@ -34,12 +34,14 @@ export default function Dashboard() {
       </div>
 
       <div className="flex gap-4 flex-wrap">
-        <Link
-          to="/complaints/create"
-          className="px-6 py-3 bg-red-600 rounded text-white font-semibold"
-        >
-          Create Complaint
-        </Link>
+        {user.role !== "ADMIN" && (
+          <Link
+            to="/complaints/create"
+            className="px-6 py-3 bg-red-600 rounded text-white font-semibold"
+          >
+            Create Complaint
+          </Link>
+        )}
         <Link to="/complaints" className="px-6 py-3 border border-gray-700 rounded">
           View All
         </Link>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axiosClient";
+import { useAuth } from "../hooks/useAuth";
 
 type Complaint = {
   id: string;
@@ -11,6 +12,7 @@ type Complaint = {
 };
 
 export default function ComplaintsList() {
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -44,9 +46,11 @@ export default function ComplaintsList() {
     <div className="bg-black min-h-screen text-white p-10 space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-3xl font-bold">Complaints</h1>
-        <Link to="/complaints/create" className="px-4 py-2 bg-red-600 rounded">
-          Create Complaint
-        </Link>
+        {user && user.role !== "ADMIN" && (
+          <Link to="/complaints/create" className="px-4 py-2 bg-red-600 rounded">
+            Create Complaint
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-4 items-center">

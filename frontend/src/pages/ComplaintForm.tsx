@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosClient";
+import { useAuth } from "../hooks/useAuth";
 
 export default function ComplaintForm() {
+  const { user, loading: authLoading } = useAuth();
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -10,6 +12,12 @@ export default function ComplaintForm() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && user && user.role === "ADMIN") {
+      navigate("/complaints");
+    }
+  }, [user, authLoading, navigate]);
 
   function update(key: string, value: string) {
     setForm({ ...form, [key]: value });
@@ -35,6 +43,18 @@ export default function ComplaintForm() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="bg-black min-h-screen text-white flex justify-center items-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user || user.role === "ADMIN") {
+    return null;
   }
 
   return (
