@@ -222,8 +222,9 @@ async def edit_complaint_service(
     user_role: UserRole,
     title: Optional[str],
     description: Optional[str],
-    action: Optional[ComplaintAction],
-    remove_images: Optional[List[str]],
+    status: Optional[ComplaintStatus] = None,
+    action: Optional[ComplaintAction] = None,
+    remove_images: Optional[List[str]] = None,
     new_images: Optional[List[UploadFile]] = None
 ) ->  Complaint:
     collection = db.get_collection(Collections.COMPLAINT)
@@ -241,6 +242,7 @@ async def edit_complaint_service(
 
     old_status = complaint_obj.status
     status_changed = False
+    new_status = None
 
     if remove_images:
         for img in remove_images:
@@ -258,7 +260,19 @@ async def edit_complaint_service(
     if description is not None:
         update_data["description"] = description
 
-    if action:
+    # Handle status update - direct status takes precedence over action
+    if status is not None:
+        status_value = status.value if isinstance(status, ComplaintStatus) else status
+        old_status_value = old_status.value if isinstance(old_status, ComplaintStatus) else str(old_status)
+        update_data["status"] = status_value
+        if status_value != old_status_value:
+            status_changed = True
+            # Convert status_value to ComplaintStatus enum for email notification
+            try:
+                new_status = ComplaintStatus(status_value)
+            except ValueError:
+                new_status = None
+    elif action:
         new_status = validate_action(
             action=action,
             current_status=complaint_obj.status,
@@ -279,7 +293,7 @@ async def edit_complaint_service(
         {"$set": update_data}
     )
 
-    if status_changed and user_role == UserRole.ADMIN:
+    if status_changed and user_role == UserRole.ADMIN and new_status is not None:
         user_collection = db.get_collection(Collections.USER)
         citizen = await user_collection.find_one({"_id": ObjectId(complaint_obj.user_id)}, {"email": 1})
         if citizen:
